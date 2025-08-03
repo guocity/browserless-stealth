@@ -1,0 +1,22 @@
+{
+  "name": "browserless-dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24 ",
+  "postCreateCommand": "npm ci --include=optional && npx playwright-core install --with-deps chromium && npm run build && npm run build:function && npm run install:debugger",
+  "forwardPorts": [3000],
+  "mounts": [
+    "source=${localWorkspaceFolder}/src,target=/workspace/src,type=bind,consistency=cached"
+  ],
+  "remoteUser": "node",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    }
+  }
+}

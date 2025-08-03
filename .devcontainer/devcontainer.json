@@ -1,6 +1,8 @@
 {
   "name": "browserless-dev",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:24 ",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "postCreateCommand": "npm ci --include=optional && npx playwright-core install --with-deps chromium && npm run build && npm run build:function && npm run install:debugger",
   "forwardPorts": [3000],
   "mounts": [

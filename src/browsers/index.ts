@@ -542,6 +542,11 @@ export class BrowserManager {
       ...parsedLaunchOptions,
     };
 
+    // Enable stealth mode by default if not explicitly set
+    if (launchOptions.stealth === undefined) {
+      launchOptions.stealth = true;
+    }
+
     const manualUserDataDir =
       launchOptions.args
         ?.find((arg) => arg.includes('--user-data-dir='))

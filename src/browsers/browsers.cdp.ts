@@ -215,11 +215,35 @@ export class ChromiumCDP extends EventEmitter {
       }
     }
 
+    // Add stealth-related default arguments for better automation stealth
+    const stealthArgs = stealth ? [
+      '--window-size=1920,1080',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-web-security',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-default-apps',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-hang-monitor',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--disable-background-mode',
+    ] : [];
+
     const finalOptions = {
       ...options,
       args: [
         `--remote-debugging-port=${this.port}`,
         `--no-sandbox`,
+        ...stealthArgs,
         ...(options.args || []),
         this.userDataDir ? `--user-data-dir=${this.userDataDir}` : '',
       ].filter((_) => !!_),

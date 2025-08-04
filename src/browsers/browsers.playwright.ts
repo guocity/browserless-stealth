@@ -57,7 +57,7 @@ class BasePlaywright extends EventEmitter {
     this.removeAllListeners();
   }
 
-  protected makeLaunchOptions(opts: BrowserServerOptions) {
+  protected makeLaunchOptions(opts: BrowserServerOptions, stealth?: boolean) {
     // Strip headless=old as it'll cause issues with newer Chromium
     const args = (opts.args ?? []).filter((a) => !a.includes('--headless=old'));
     const hasHeadless =
@@ -68,10 +68,34 @@ class BasePlaywright extends EventEmitter {
       args.push('--headless=new');
     }
 
+    // Add stealth-related arguments for Chromium-based browsers
+    const stealthArgs = stealth && this.playwrightBrowserType === PlaywrightBrowserTypes.chromium ? [
+      '--window-size=1920,1080',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-web-security',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-default-apps',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-hang-monitor',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--disable-background-mode',
+    ] : [];
+
     return {
       ...opts,
       args: [
         ...args,
+        ...stealthArgs,
         this.userDataDir ? `--user-data-dir=${this.userDataDir}` : '',
       ],
       executablePath: this.executablePath(),
@@ -132,10 +156,10 @@ class BasePlaywright extends EventEmitter {
   public async launch(
     launcherOpts: BrowserLauncherOptions,
   ): Promise<playwright.BrowserServer> {
-    const { options, pwVersion } = launcherOpts;
+    const { options, pwVersion, stealth } = launcherOpts;
     this.logger.info(`Launching ${this.constructor.name} Handler`);
 
-    const opts = this.makeLaunchOptions(options);
+    const opts = this.makeLaunchOptions(options, stealth);
     const versionedPw = await this.config.loadPwVersion(pwVersion!);
     const browser = await versionedPw[this.playwrightBrowserType].launchServer({
       ...opts,
@@ -238,11 +262,18 @@ export class EdgePlaywright extends ChromiumPlaywright {
 export class FirefoxPlaywright extends BasePlaywright {
   protected playwrightBrowserType = PlaywrightBrowserTypes.firefox;
 
-  protected makeLaunchOptions(opts: BrowserServerOptions) {
+  protected makeLaunchOptions(opts: BrowserServerOptions, stealth?: boolean) {
+    // Firefox-specific stealth options (less aggressive than Chrome)
+    const stealthArgs = stealth ? [
+      '-width=1920',
+      '-height=1080',
+    ] : [];
+
     return {
       ...opts,
       args: [
         ...(opts.args || []),
+        ...stealthArgs,
         this.userDataDir ? `-profile=${this.userDataDir}` : '',
       ],
       executablePath: this.executablePath(),
@@ -253,11 +284,17 @@ export class FirefoxPlaywright extends BasePlaywright {
 export class WebKitPlaywright extends BasePlaywright {
   protected playwrightBrowserType = PlaywrightBrowserTypes.webkit;
 
-  protected makeLaunchOptions(opts: BrowserServerOptions) {
+  protected makeLaunchOptions(opts: BrowserServerOptions, stealth?: boolean) {
+    // WebKit doesn't have as many stealth options as Chromium
+    const stealthArgs = stealth ? [
+      '--window-size=1920,1080',
+    ] : [];
+
     return {
       ...opts,
       args: [
         ...(opts.args || []),
+        ...stealthArgs,
         this.userDataDir ? `-profile=${this.userDataDir}` : '',
       ],
       executablePath: this.executablePath(),
